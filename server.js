@@ -1,6 +1,7 @@
 const express = require('express');
 const { connectMongoDB, createPGTable, pgQueries } = require('./config/db');
 const MongoUser = require('./models/mongoUser');
+const { removeSpecialChars } = require('./utils/utils');
 
 const app = express();
 app.use(express.json());
@@ -13,7 +14,8 @@ createPGTable();
 // MongoDB Routes
 app.post('/api/users', async (req, res) => {
   try {
-    const { name, favoriteAnimal } = req.body;
+    let { name, favoriteAnimal } = req.body;
+    [name, favoriteAnimal] = [name, favoriteAnimal].map(removeSpecialChars);
     const newUser = new MongoUser({ name, favoriteAnimal });
     await newUser.save();
     res.status(201).json(newUser);
@@ -34,7 +36,8 @@ app.get('/api/users', async (req, res) => {
 // PostgreSQL Routes
 app.post('/api/books', async (req, res) => {
   try {
-    const { title, author } = req.body;
+    let { title, author } = req.body;
+    [title, author] = [title, author].map(removeSpecialChars);
     const newBook = await pgQueries.addBook(title, author);
     res.status(201).json(newBook);
   } catch (error) {
